@@ -242,12 +242,12 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
                 return false;
             }
 
-            if (!string.IsNullOrEmpty(redirectToIdentityProviderContext.ProtocolMessage.State))
-            {
-                properties.Items[OpenIdConnectAuthenticationDefaults.UserstatePropertiesKey] = redirectToIdentityProviderContext.ProtocolMessage.State;
-            }
-
             message = redirectToIdentityProviderContext.ProtocolMessage;
+
+            if (!string.IsNullOrEmpty(message.State))
+            {
+                properties.Items[OpenIdConnectAuthenticationDefaults.UserstatePropertiesKey] = message.State;
+            }
 
             var redirectUriForCode = message.RedirectUri;
             if (string.IsNullOrEmpty(redirectUriForCode))
@@ -368,6 +368,7 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
                 {
                     return null;
                 }
+                message = messageReceivedContext.ProtocolMessage;
 
                 var properties = new AuthenticationProperties();
 
@@ -467,14 +468,16 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
             {
                 return null;
             }
+            message = authorizationCodeReceivedContext.ProtocolMessage;
+            var code = authorizationCodeReceivedContext.Code;
 
             // Redeeming authorization code for tokens
-            Logger.LogDebug(Resources.OIDCH_0038_Redeeming_Auth_Code, message.Code);
+            Logger.LogDebug(Resources.OIDCH_0038_Redeeming_Auth_Code, code);
 
-            tokenEndpointResponse = await RedeemAuthorizationCodeAsync(message.Code, authorizationCodeReceivedContext.RedirectUri);
+            tokenEndpointResponse = await RedeemAuthorizationCodeAsync(code, authorizationCodeReceivedContext.RedirectUri);
             idToken = tokenEndpointResponse.Message.IdToken;
 
-            var authorizationCodeRedeemedContext = await RunAuthorizationCodeRedeemedEventAsync(message, tokenEndpointResponse);
+            var authorizationCodeRedeemedContext = await RunAuthorizationCodeRedeemedEventAsync(message, code, tokenEndpointResponse);
             if (authorizationCodeRedeemedContext.HandledResponse)
             {
                 return authorizationCodeRedeemedContext.AuthenticationTicket;
@@ -507,6 +510,7 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
             {
                 return null;
             }
+            ticket = securityTokenValidatedContext.AuthenticationTicket;
 
             return ticket;
         }
@@ -525,9 +529,11 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
             {
                 return null;
             }
+            message = securityTokenReceivedContext.ProtocolMessage;
+            var idToken = securityTokenReceivedContext.SecurityToken;
 
             var validationParameters = Options.TokenValidationParameters.Clone();
-            ticket = ValidateToken(message.IdToken, message, properties, validationParameters, out jwt);
+            ticket = ValidateToken(idToken, message, properties, validationParameters, out jwt);
 
             await ValidateOpenIdConnectProtocolAsync(jwt, message);
 
@@ -540,6 +546,8 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
             {
                 return null;
             }
+            message = securityTokenValidatedContext.ProtocolMessage;
+            ticket = securityTokenValidatedContext.AuthenticationTicket;
 
             if (message.Code != null)
             {
@@ -552,6 +560,7 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
                 {
                     return null;
                 }
+                ticket = authorizationCodeReceivedContext.AuthenticationTicket;
             }
 
             return ticket;
@@ -864,12 +873,12 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
             return authorizationCodeReceivedContext;
         }
 
-        private async Task<AuthorizationCodeRedeemedContext> RunAuthorizationCodeRedeemedEventAsync(OpenIdConnectMessage message, OpenIdConnectTokenEndpointResponse tokenEndpointResponse)
+        private async Task<AuthorizationCodeRedeemedContext> RunAuthorizationCodeRedeemedEventAsync(OpenIdConnectMessage message, string code, OpenIdConnectTokenEndpointResponse tokenEndpointResponse)
         {
-            Logger.LogDebug(Resources.OIDCH_0042_AuthorizationCodeRedeemed, message.Code);
+            Logger.LogDebug(Resources.OIDCH_0042_AuthorizationCodeRedeemed, code);
             var authorizationCodeRedeemedContext = new AuthorizationCodeRedeemedContext(Context, Options)
             {
-                Code = message.Code,
+                Code = code,
                 ProtocolMessage = message,
                 TokenEndpointResponse = tokenEndpointResponse
             };
@@ -892,6 +901,7 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
             var securityTokenReceivedContext = new SecurityTokenReceivedContext(Context, Options)
             {
                 ProtocolMessage = message,
+                SecurityToken = message.IdToken
             };
 
             await Options.Events.SecurityTokenReceived(securityTokenReceivedContext);
@@ -998,7 +1008,6 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
                 ticket.Properties.Items[OpenIdConnectSessionProperties.CheckSessionIFrame] = _configuration.CheckSessionIframe;
             }
 
-            // Rename?
             if (Options.UseTokenLifetime)
             {
                 var issued = validatedToken.ValidFrom;
