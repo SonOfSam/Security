@@ -76,7 +76,6 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
                 var message = new OpenIdConnectMessage()
                 {
                     IssuerAddress = _configuration == null ? string.Empty : (_configuration.EndSessionEndpoint ?? string.Empty),
-                    RequestType = OpenIdConnectRequestType.LogoutRequest,
                 };
 
                 // Set End_Session_Endpoint in order:
@@ -92,24 +91,24 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
                     message.PostLogoutRedirectUri = Options.PostLogoutRedirectUri;
                 }
 
-                var redirectToIdentityProviderContext = new RedirectToIdentityProviderContext(Context, Options)
+                var redirectForSignOutContext = new RedirectForSignOutContext(Context, Options)
                 {
                     ProtocolMessage = message
                 };
 
-                await Options.Events.RedirectToIdentityProvider(redirectToIdentityProviderContext);
-                if (redirectToIdentityProviderContext.HandledResponse)
+                await Options.Events.RedirectForSignOut(redirectForSignOutContext);
+                if (redirectForSignOutContext.HandledResponse)
                 {
-                    Logger.LogVerbose(Resources.OIDCH_0034_RedirectToIdentityProviderContextHandledResponse);
+                    Logger.LogVerbose("RedirectForSignOutContext.HandledResponse");
                     return;
                 }
-                else if (redirectToIdentityProviderContext.Skipped)
+                else if (redirectForSignOutContext.Skipped)
                 {
-                    Logger.LogVerbose(Resources.OIDCH_0035_RedirectToIdentityProviderContextSkipped);
+                    Logger.LogVerbose("RedirectForSignOutContext.Skipped");
                     return;
                 }
 
-                message = redirectToIdentityProviderContext.ProtocolMessage;
+                message = redirectForSignOutContext.ProtocolMessage;
 
                 if (Options.AuthenticationMethod == OpenIdConnectAuthenticationMethod.RedirectGet)
                 {
@@ -185,8 +184,6 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
                 ClientId = Options.ClientId,
                 IssuerAddress = _configuration?.AuthorizationEndpoint ?? string.Empty,
                 RedirectUri = Options.RedirectUri,
-                // [brentschmaltz] - #215 this should be a property on RedirectToIdentityProviderContext not on the OIDCMessage.
-                RequestType = OpenIdConnectRequestType.AuthenticationRequest,
                 Resource = Options.Resource,
                 ResponseType = Options.ResponseType,
                 Scope = string.Join(" ", Options.Scope)
@@ -225,24 +222,24 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
 
             GenerateCorrelationId(properties);
 
-            var redirectToIdentityProviderContext = new RedirectToIdentityProviderContext(Context, Options)
+            var redirectForAuthenticationContext = new RedirectForAuthenticationContext(Context, Options)
             {
                 ProtocolMessage = message
             };
 
-            await Options.Events.RedirectToIdentityProvider(redirectToIdentityProviderContext);
-            if (redirectToIdentityProviderContext.HandledResponse)
+            await Options.Events.RedirectForAuthentication(redirectForAuthenticationContext);
+            if (redirectForAuthenticationContext.HandledResponse)
             {
-                Logger.LogVerbose(Resources.OIDCH_0034_RedirectToIdentityProviderContextHandledResponse);
+                Logger.LogVerbose("RedirectForAuthenticationContext.HandledResponse");
                 return true;
             }
-            else if (redirectToIdentityProviderContext.Skipped)
+            else if (redirectForAuthenticationContext.Skipped)
             {
-                Logger.LogVerbose(Resources.OIDCH_0035_RedirectToIdentityProviderContextSkipped);
+                Logger.LogVerbose("RedirectForAuthenticationContext.Skipped");
                 return false;
             }
 
-            message = redirectToIdentityProviderContext.ProtocolMessage;
+            message = redirectForAuthenticationContext.ProtocolMessage;
 
             if (!string.IsNullOrEmpty(message.State))
             {

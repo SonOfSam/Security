@@ -36,9 +36,14 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         Task MessageReceived(MessageReceivedContext context);
 
         /// <summary>
-        /// Invoked to manipulate redirects to the identity provider for SignIn, SignOut, or Challenge.
+        /// Invoked before redirecting to the identity provider to authenticate.
         /// </summary>
-        Task RedirectToIdentityProvider(RedirectToIdentityProviderContext context);
+        Task RedirectForAuthentication(RedirectForAuthenticationContext context);
+
+        /// <summary>
+        /// Invoked before redirecting to the identity provider to sign out.
+        /// </summary>
+        Task RedirectForSignOut(RedirectForSignOutContext context);
 
         /// <summary>
         /// Invoked with the security token that has been extracted from the protocol message.

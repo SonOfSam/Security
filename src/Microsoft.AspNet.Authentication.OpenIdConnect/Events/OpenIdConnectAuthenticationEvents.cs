@@ -37,9 +37,14 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         public Func<MessageReceivedContext, Task> OnMessageReceived { get; set; } = context => Task.FromResult(0);
 
         /// <summary>
-        /// Invoked to manipulate redirects to the identity provider for SignIn, SignOut, or Challenge.
+        /// Invoked before redirecting to the identity provider to authenticate.
         /// </summary>
-        public Func<RedirectToIdentityProviderContext, Task> OnRedirectToIdentityProvider { get; set; } = context => Task.FromResult(0);
+        public Func<RedirectForAuthenticationContext, Task> OnRedirectForAuthentication { get; set; } = context => Task.FromResult(0);
+
+        /// <summary>
+        /// Invoked before redirecting to the identity provider to sign out.
+        /// </summary>
+        public Func<RedirectForSignOutContext, Task> OnRedirectForSignOut { get; set; } = context => Task.FromResult(0);
 
         /// <summary>
         /// Invoked with the security token that has been extracted from the protocol message.
@@ -66,7 +71,9 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
 
         public virtual Task MessageReceived(MessageReceivedContext context) => OnMessageReceived(context);
 
-        public virtual Task RedirectToIdentityProvider(RedirectToIdentityProviderContext context) => OnRedirectToIdentityProvider(context);
+        public virtual Task RedirectForAuthentication(RedirectForAuthenticationContext context) => OnRedirectForAuthentication(context);
+
+        public virtual Task RedirectForSignOut(RedirectForSignOutContext context) => OnRedirectForSignOut(context);
 
         public virtual Task SecurityTokenReceived(SecurityTokenReceivedContext context) => OnSecurityTokenReceived(context);
 

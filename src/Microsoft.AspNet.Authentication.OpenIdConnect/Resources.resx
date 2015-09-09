@@ -150,12 +150,6 @@
   <data name="OIDCH_0033_NonceAlreadyExists" xml:space="preserve">
     <value>OIDCH_0033: ProtocolValidator.RequireNonce == true. The generated nonce already exists: this usually indicates the nonce is not unique or has been used. The nonce is: '{0}'.</value>
   </data>
-  <data name="OIDCH_0034_RedirectToIdentityProviderContextHandledResponse" xml:space="preserve">
-    <value>OIDCH_0034: RedirectToIdentityProviderContext.HandledResponse</value>
-  </data>
-  <data name="OIDCH_0035_RedirectToIdentityProviderContextSkipped" xml:space="preserve">
-    <value>OIDCH_0035: RedirectToIdentityProviderContext.Skipped</value>
-  </data>
   <data name="OIDCH_0036_UriIsNotWellFormed" xml:space="preserve">
     <value>OIDCH_0036: Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute) returned 'false', redirectUri is: '{0}'.</value>
   </data>

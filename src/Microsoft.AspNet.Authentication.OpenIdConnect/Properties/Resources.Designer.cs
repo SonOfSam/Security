@@ -187,38 +187,6 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         }
 
         /// <summary>
-        /// OIDCH_0034: RedirectToIdentityProviderContext.HandledResponse
-        /// </summary>
-        internal static string OIDCH_0034_RedirectToIdentityProviderContextHandledResponse
-        {
-            get { return GetString("OIDCH_0034_RedirectToIdentityProviderContextHandledResponse"); }
-        }
-
-        /// <summary>
-        /// OIDCH_0034: RedirectToIdentityProviderContext.HandledResponse
-        /// </summary>
-        internal static string FormatOIDCH_0034_RedirectToIdentityProviderContextHandledResponse()
-        {
-            return GetString("OIDCH_0034_RedirectToIdentityProviderContextHandledResponse");
-        }
-
-        /// <summary>
-        /// OIDCH_0035: RedirectToIdentityProviderContext.Skipped
-        /// </summary>
-        internal static string OIDCH_0035_RedirectToIdentityProviderContextSkipped
-        {
-            get { return GetString("OIDCH_0035_RedirectToIdentityProviderContextSkipped"); }
-        }
-
-        /// <summary>
-        /// OIDCH_0035: RedirectToIdentityProviderContext.Skipped
-        /// </summary>
-        internal static string FormatOIDCH_0035_RedirectToIdentityProviderContextSkipped()
-        {
-            return GetString("OIDCH_0035_RedirectToIdentityProviderContextSkipped");
-        }
-
-        /// <summary>
         /// OIDCH_0036: Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute) returned 'false', redirectUri is: '{0}'.
         /// </summary>
         internal static string OIDCH_0036_UriIsNotWellFormed
