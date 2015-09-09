@@ -967,11 +967,11 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
             await Options.Events.UserInformationReceived(userInformationReceivedContext);
             if (userInformationReceivedContext.HandledResponse)
             {
-                Logger.LogVerbose("UserInformationReceived event returned Handled.");
+                Logger.LogVerbose("The UserInformationReceived event returned Handled.");
             }
             else if (userInformationReceivedContext.Skipped)
             {
-                Logger.LogVerbose("UserInformationReceived event returned Skipped.");
+                Logger.LogVerbose("The UserInformationReceived event returned Skipped.");
             }
 
             return userInformationReceivedContext;
@@ -1106,14 +1106,33 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         /// <returns>True if the request was handled, false if the next middleware should be invoked.</returns>
         public override Task<bool> InvokeAsync()
         {
-            return InvokeReplyPathAsync();
+            return InvokeReturnPathAsync();
         }
 
-        private async Task<bool> InvokeReplyPathAsync()
+        private async Task<bool> InvokeReturnPathAsync()
         {
             var ticket = await HandleAuthenticateOnceAsync();
             if (ticket != null)
             {
+                Logger.LogDebug("Authentication completed.");
+
+                var authenticationCompletedContext = new AuthenticationCompletedContext(Context, Options)
+                {
+                    AuthenticationTicket = ticket,
+                };
+                await Options.Events.AuthenticationCompleted(authenticationCompletedContext);
+                if (authenticationCompletedContext.HandledResponse)
+                {
+                    Logger.LogVerbose("The AuthenticationCompleted event returned Handled.");
+                    return true;
+                }
+                else if (authenticationCompletedContext.Skipped)
+                {
+                    Logger.LogVerbose("The AuthenticationCompleted event returned Skipped.");
+                    return false;
+                }
+                ticket = authenticationCompletedContext.AuthenticationTicket;
+
                 if (ticket.Principal != null)
                 {
                     await Request.HttpContext.Authentication.SignInAsync(Options.SignInScheme, ticket.Principal, ticket.Properties);
