@@ -44,5 +44,10 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         /// Invoked after the security token has passed validation and a ClaimsIdentity has been generated.
         /// </summary>
         Task SecurityTokenValidated(SecurityTokenValidatedContext context);
+
+        /// <summary>
+        /// Invoked when user information is retrieved from the UserInfoEndpoint.
+        /// </summary>
+        Task UserInformationReceived(UserInformationReceivedContext context);
     }
 }

@@ -46,6 +46,11 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         /// </summary>
         public Func<SecurityTokenValidatedContext, Task> OnSecurityTokenValidated { get; set; } = context => Task.FromResult(0);
 
+        /// <summary>
+        /// Invoked when user information is retrieved from the UserInfoEndpoint.
+        /// </summary>
+        public Func<UserInformationReceivedContext, Task> OnUserInformationReceived { get; set; } = context => Task.FromResult(0);
+
         public virtual Task AuthenticationFailed(AuthenticationFailedContext context) => OnAuthenticationFailed(context);
 
         public virtual Task AuthorizationCodeReceived(AuthorizationCodeReceivedContext context) => OnAuthorizationCodeReceived(context);
@@ -59,5 +64,7 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         public virtual Task SecurityTokenReceived(SecurityTokenReceivedContext context) => OnSecurityTokenReceived(context);
 
         public virtual Task SecurityTokenValidated(SecurityTokenValidatedContext context) => OnSecurityTokenValidated(context);
+
+        public virtual Task UserInformationReceived(UserInformationReceivedContext context) => OnUserInformationReceived(context);
     }
 }

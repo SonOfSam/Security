@@ -498,7 +498,11 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
             if (Options.GetClaimsFromUserInfoEndpoint)
             {
                 Logger.LogDebug(Resources.OIDCH_0040_Sending_Request_UIEndpoint);
-                ticket = await GetUserInformationAsync(properties, tokenEndpointResponse.Message, ticket);
+                ticket = await GetUserInformationAsync(tokenEndpointResponse.Message, ticket);
+                if (ticket == null)
+                {
+                    return null;
+                }
             }
 
             var securityTokenValidatedContext = await RunSecurityTokenValidatedEventAsync(message, ticket);
@@ -595,11 +599,10 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         /// <summary>
         /// Goes to UserInfo endpoint to retrieve additional claims and add any unique claims to the given identity.
         /// </summary>
-        /// <param name="properties">Authentication Properties</param>
         /// <param name="message">message that is being processed</param>
         /// <param name="ticket">authentication ticket with claims principal and identities</param>
         /// <returns>Authentication ticket with identity with additional claims, if any.</returns>
-        protected virtual async Task<AuthenticationTicket> GetUserInformationAsync(AuthenticationProperties properties, OpenIdConnectMessage message, AuthenticationTicket ticket)
+        protected virtual async Task<AuthenticationTicket> GetUserInformationAsync(OpenIdConnectMessage message, AuthenticationTicket ticket)
         {
             string userInfoEndpoint = null;
             if (_configuration != null)
@@ -619,6 +622,18 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
             responseMessage.EnsureSuccessStatusCode();
             var userInfoResponse = await responseMessage.Content.ReadAsStringAsync();
             var user = JObject.Parse(userInfoResponse);
+
+            var userInformationReceivedContext = await RunUserInformationReceivedEventAsync(ticket, message, user);
+            if (userInformationReceivedContext.HandledResponse)
+            {
+                return userInformationReceivedContext.AuthenticationTicket;
+            }
+            else if (userInformationReceivedContext.Skipped)
+            {
+                return null;
+            }
+            ticket = userInformationReceivedContext.AuthenticationTicket;
+            user = userInformationReceivedContext.User;
 
             var identity = (ClaimsIdentity)ticket.Principal.Identity;
             var subjectClaimType = identity.FindFirst(ClaimTypes.NameIdentifier);
@@ -936,6 +951,30 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
             }
 
             return securityTokenValidatedContext;
+        }
+
+        private async Task<UserInformationReceivedContext> RunUserInformationReceivedEventAsync(AuthenticationTicket ticket, OpenIdConnectMessage message, JObject user)
+        {
+            Logger.LogDebug("User information received:" + user.ToString());
+
+            var userInformationReceivedContext = new UserInformationReceivedContext(Context, Options)
+            {
+                AuthenticationTicket = ticket,
+                ProtocolMessage = message,
+                User = user,
+            };
+
+            await Options.Events.UserInformationReceived(userInformationReceivedContext);
+            if (userInformationReceivedContext.HandledResponse)
+            {
+                Logger.LogVerbose("UserInformationReceived event returned Handled.");
+            }
+            else if (userInformationReceivedContext.Skipped)
+            {
+                Logger.LogVerbose("UserInformationReceived event returned Skipped.");
+            }
+
+            return userInformationReceivedContext;
         }
 
         private async Task<AuthenticationFailedContext> RunAuthenticationFailedEventAsync(OpenIdConnectMessage message, Exception exception)
