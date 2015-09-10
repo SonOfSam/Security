@@ -90,24 +90,24 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
                     message.PostLogoutRedirectUri = Options.PostLogoutRedirectUri;
                 }
 
-                var redirectForSignOutContext = new RedirectContext(Context, Options)
+                var redirectContext = new RedirectContext(Context, Options)
                 {
                     ProtocolMessage = message
                 };
 
-                await Options.Events.RedirectToEndSessionEndpoint(redirectForSignOutContext);
-                if (redirectForSignOutContext.HandledResponse)
+                await Options.Events.RedirectToEndSessionEndpoint(redirectContext);
+                if (redirectContext.HandledResponse)
                 {
-                    Logger.LogVerbose("RedirectForSignOutContext.HandledResponse");
+                    Logger.LogVerbose("RedirectToEndSessionEndpoint.HandledResponse");
                     return;
                 }
-                else if (redirectForSignOutContext.Skipped)
+                else if (redirectContext.Skipped)
                 {
-                    Logger.LogVerbose("RedirectForSignOutContext.Skipped");
+                    Logger.LogVerbose("RedirectToEndSessionEndpoint.Skipped");
                     return;
                 }
 
-                message = redirectForSignOutContext.ProtocolMessage;
+                message = redirectContext.ProtocolMessage;
 
                 if (Options.AuthenticationMethod == OpenIdConnectAuthenticationMethod.RedirectGet)
                 {
@@ -221,24 +221,24 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
 
             GenerateCorrelationId(properties);
 
-            var redirectForAuthenticationContext = new RedirectContext(Context, Options)
+            var redirectContext = new RedirectContext(Context, Options)
             {
                 ProtocolMessage = message
             };
 
-            await Options.Events.RedirectToAuthenticationEndpoint(redirectForAuthenticationContext);
-            if (redirectForAuthenticationContext.HandledResponse)
+            await Options.Events.RedirectToAuthenticationEndpoint(redirectContext);
+            if (redirectContext.HandledResponse)
             {
-                Logger.LogVerbose("RedirectForAuthenticationContext.HandledResponse");
+                Logger.LogVerbose("RedirectToAuthenticationEndpoint.HandledResponse");
                 return true;
             }
-            else if (redirectForAuthenticationContext.Skipped)
+            else if (redirectContext.Skipped)
             {
-                Logger.LogVerbose("RedirectForAuthenticationContext.Skipped");
+                Logger.LogVerbose("RedirectToAuthenticationEndpoint.Skipped");
                 return false;
             }
 
-            message = redirectForAuthenticationContext.ProtocolMessage;
+            message = redirectContext.ProtocolMessage;
 
             if (!string.IsNullOrEmpty(message.State))
             {
