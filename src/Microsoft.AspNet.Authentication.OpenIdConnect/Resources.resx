@@ -189,23 +189,11 @@
   <data name="OIDCH_0007_UpdatingConfiguration" xml:space="preserve">
     <value>OIDCH_0007: Updating configuration</value>
   </data>
-  <data name="OIDCH_0008_SecurityTokenReceivedContextHandledResponse" xml:space="preserve">
-    <value>OIDCH_0008: SecurityTokenReceivedContext.HandledResponse</value>
-  </data>
-  <data name="OIDCH_0009_SecurityTokenReceivedContextSkipped" xml:space="preserve">
-    <value>OIDCH_0009: SecurityTokenReceivedContext.Skipped</value>
-  </data>
   <data name="OIDCH_0010_ValidatedSecurityTokenNotJwt" xml:space="preserve">
     <value>OIDCH_0010: Validated Security Token must be a JwtSecurityToken was: '{0}'.</value>
   </data>
   <data name="OIDCH_0011_UnableToValidateToken" xml:space="preserve">
     <value>OIDCH_0011: Unable to validate the 'id_token', no suitable ISecurityTokenValidator was found for: '{0}'."</value>
-  </data>
-  <data name="OIDCH_0012_SecurityTokenValidatedContextHandledResponse" xml:space="preserve">
-    <value>OIDCH_0012: SecurityTokenValidatedContext.HandledResponse</value>
-  </data>
-  <data name="OIDCH_0013_SecurityTokenValidatedContextSkipped" xml:space="preserve">
-    <value>OIDCH_0013: SecurityTokenValidatedContext.Skipped</value>
   </data>
   <data name="OIDCH_0014_AuthorizationCodeReceived" xml:space="preserve">
     <value>OIDCH_0014: AuthorizationCode received: '{0}'.</value>

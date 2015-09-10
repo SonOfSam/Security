@@ -31,6 +31,16 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         Task AuthorizationCodeRedeemed(AuthorizationCodeRedeemedContext context);
 
         /// <summary>
+        /// Invoked with the id token that has been extracted from the protocol message.
+        /// </summary>
+        Task IdTokenReceived(IdTokenReceivedContext context);
+
+        /// <summary>
+        /// Invoked after the id token has passed validation and a ClaimsIdentity has been generated.
+        /// </summary>
+        Task IdTokenValidated(IdTokenValidatedContext context);
+
+        /// <summary>
         /// Invoked when a protocol message is first received.
         /// </summary>
         Task MessageReceived(MessageReceivedContext context);
@@ -38,22 +48,12 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         /// <summary>
         /// Invoked before redirecting to the identity provider to authenticate.
         /// </summary>
-        Task RedirectForAuthentication(RedirectForAuthenticationContext context);
+        Task RedirectToAuthenticationEndpoint(RedirectContext context);
 
         /// <summary>
         /// Invoked before redirecting to the identity provider to sign out.
         /// </summary>
-        Task RedirectForSignOut(RedirectForSignOutContext context);
-
-        /// <summary>
-        /// Invoked with the security token that has been extracted from the protocol message.
-        /// </summary>
-        Task SecurityTokenReceived(SecurityTokenReceivedContext context);
-
-        /// <summary>
-        /// Invoked after the security token has passed validation and a ClaimsIdentity has been generated.
-        /// </summary>
-        Task SecurityTokenValidated(SecurityTokenValidatedContext context);
+        Task RedirectToEndSessionEndpoint(RedirectContext context);
 
         /// <summary>
         /// Invoked when user information is retrieved from the UserInfoEndpoint.

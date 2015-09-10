@@ -2,18 +2,17 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Http;
-using Microsoft.Framework.Internal;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Microsoft.AspNet.Authentication.OpenIdConnect
 {
     /// <summary>
     /// When a user configures the <see cref="OpenIdConnectAuthenticationMiddleware"/> to be notified prior to redirecting to an IdentityProvider
-    /// an instance of <see cref="RedirectForAuthenticationContext"/> is passed to the 'RedirectForAuthentication" event.
+    /// an instance of <see cref="RedirectContext"/> is passed to the 'RedirectToAuthenticationEndpoint' or 'RedirectToEndSessionEndpoint' events.
     /// </summary>
-    public class RedirectForAuthenticationContext : BaseControlContext<OpenIdConnectAuthenticationOptions>
+    public class RedirectContext : BaseControlContext<OpenIdConnectAuthenticationOptions>
     {
-        public RedirectForAuthenticationContext([NotNull] HttpContext context, [NotNull] OpenIdConnectAuthenticationOptions options)
+        public RedirectContext(HttpContext context, OpenIdConnectAuthenticationOptions options)
             : base(context, options)
         {
         }
@@ -21,7 +20,6 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         /// <summary>
         /// Gets or sets the <see cref="OpenIdConnectMessage"/>.
         /// </summary>
-        /// <exception cref="ArgumentNullException">if 'value' is null.</exception>
-        public OpenIdConnectMessage ProtocolMessage { get; [param: NotNull] set; }
+        public OpenIdConnectMessage ProtocolMessage { get; set; }
     }
 }

@@ -32,6 +32,16 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         public Func<AuthorizationCodeRedeemedContext, Task> OnAuthorizationCodeRedeemed { get; set; } = context => Task.FromResult(0);
 
         /// <summary>
+        /// Invoked with the id token that has been extracted from the protocol message.
+        /// </summary>
+        public Func<IdTokenReceivedContext, Task> OnIdTokenReceived { get; set; } = context => Task.FromResult(0);
+
+        /// <summary>
+        /// Invoked after the id token has passed validation and a ClaimsIdentity has been generated.
+        /// </summary>
+        public Func<IdTokenValidatedContext, Task> OnIdTokenValidated { get; set; } = context => Task.FromResult(0);
+
+        /// <summary>
         /// Invoked when a protocol message is first received.
         /// </summary>
         public Func<MessageReceivedContext, Task> OnMessageReceived { get; set; } = context => Task.FromResult(0);
@@ -39,22 +49,12 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         /// <summary>
         /// Invoked before redirecting to the identity provider to authenticate.
         /// </summary>
-        public Func<RedirectForAuthenticationContext, Task> OnRedirectForAuthentication { get; set; } = context => Task.FromResult(0);
+        public Func<RedirectContext, Task> OnRedirectToAuthenticationEndpoint { get; set; } = context => Task.FromResult(0);
 
         /// <summary>
         /// Invoked before redirecting to the identity provider to sign out.
         /// </summary>
-        public Func<RedirectForSignOutContext, Task> OnRedirectForSignOut { get; set; } = context => Task.FromResult(0);
-
-        /// <summary>
-        /// Invoked with the security token that has been extracted from the protocol message.
-        /// </summary>
-        public Func<SecurityTokenReceivedContext, Task> OnSecurityTokenReceived { get; set; } = context => Task.FromResult(0);
-
-        /// <summary>
-        /// Invoked after the security token has passed validation and a ClaimsIdentity has been generated.
-        /// </summary>
-        public Func<SecurityTokenValidatedContext, Task> OnSecurityTokenValidated { get; set; } = context => Task.FromResult(0);
+        public Func<RedirectContext, Task> OnRedirectToEndSessionEndpoint { get; set; } = context => Task.FromResult(0);
 
         /// <summary>
         /// Invoked when user information is retrieved from the UserInfoEndpoint.
@@ -69,15 +69,15 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
 
         public virtual Task AuthorizationCodeRedeemed(AuthorizationCodeRedeemedContext context) => OnAuthorizationCodeRedeemed(context);
 
+        public virtual Task IdTokenReceived(IdTokenReceivedContext context) => OnIdTokenReceived(context);
+
+        public virtual Task IdTokenValidated(IdTokenValidatedContext context) => OnIdTokenValidated(context);
+
         public virtual Task MessageReceived(MessageReceivedContext context) => OnMessageReceived(context);
 
-        public virtual Task RedirectForAuthentication(RedirectForAuthenticationContext context) => OnRedirectForAuthentication(context);
+        public virtual Task RedirectToAuthenticationEndpoint(RedirectContext context) => OnRedirectToAuthenticationEndpoint(context);
 
-        public virtual Task RedirectForSignOut(RedirectForSignOutContext context) => OnRedirectForSignOut(context);
-
-        public virtual Task SecurityTokenReceived(SecurityTokenReceivedContext context) => OnSecurityTokenReceived(context);
-
-        public virtual Task SecurityTokenValidated(SecurityTokenValidatedContext context) => OnSecurityTokenValidated(context);
+        public virtual Task RedirectToEndSessionEndpoint(RedirectContext context) => OnRedirectToEndSessionEndpoint(context);
 
         public virtual Task UserInformationReceived(UserInformationReceivedContext context) => OnUserInformationReceived(context);
     }
