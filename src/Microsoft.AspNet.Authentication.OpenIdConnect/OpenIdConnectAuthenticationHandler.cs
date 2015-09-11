@@ -500,7 +500,7 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
                 }
             }
 
-            var securityTokenValidatedContext = await RunIdTokenValidatedEventAsync(message, ticket);
+            var securityTokenValidatedContext = await RunIdTokenValidatedEventAsync(message, ticket, tokenEndpointResponse);
             if (securityTokenValidatedContext.HandledResponse)
             {
                 return securityTokenValidatedContext.AuthenticationTicket;
@@ -536,7 +536,7 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
 
             await ValidateOpenIdConnectProtocolAsync(jwt, message);
 
-            var idTokenValidatedContext = await RunIdTokenValidatedEventAsync(message, ticket);
+            var idTokenValidatedContext = await RunIdTokenValidatedEventAsync(message, ticket, tokenEndpointResponse: null);
             if (idTokenValidatedContext.HandledResponse)
             {
                 return idTokenValidatedContext.AuthenticationTicket;
@@ -923,12 +923,13 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
             return idTokenReceivedContext;
         }
 
-        private async Task<IdTokenValidatedContext> RunIdTokenValidatedEventAsync(OpenIdConnectMessage message, AuthenticationTicket ticket)
+        private async Task<IdTokenValidatedContext> RunIdTokenValidatedEventAsync(OpenIdConnectMessage message, AuthenticationTicket ticket, OpenIdConnectTokenEndpointResponse tokenEndpointResponse)
         {
             var idTokenValidatedContext = new IdTokenValidatedContext(Context, Options)
             {
                 AuthenticationTicket = ticket,
-                ProtocolMessage = message
+                ProtocolMessage = message,
+                TokenEndpointResponse = tokenEndpointResponse,
             };
 
             await Options.Events.IdTokenValidated(idTokenValidatedContext);

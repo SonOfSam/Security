@@ -14,5 +14,7 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         }
 
         public OpenIdConnectMessage ProtocolMessage { get; set; }
+
+        public OpenIdConnectTokenEndpointResponse TokenEndpointResponse { get; set; }
     }
 }
