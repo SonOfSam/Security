@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Authorization.Test
@@ -318,7 +318,7 @@ namespace Microsoft.AspNet.Authorization.Test
             var user = new ClaimsPrincipal(
                 new ClaimsIdentity(
                     new Claim[] {
-                        new Claim(ClaimTypes.Role, ""),
+                        new Claim(ClaimTypes.Role, "none"),
                     },
                     "Basic")
                 );

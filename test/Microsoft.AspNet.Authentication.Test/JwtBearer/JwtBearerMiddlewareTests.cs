@@ -12,8 +12,7 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.TestHost;
-using Microsoft.Framework.DependencyInjection;
-using Shouldly;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Authentication.JwtBearer
@@ -34,7 +33,7 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
 
             var newBearerToken = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6ImtyaU1QZG1Cdng2OHNrVDgtbVBBQjNCc2VlQSJ9.eyJhdWQiOiJodHRwczovL1R1c2hhclRlc3Qub25taWNyb3NvZnQuY29tL1RvZG9MaXN0U2VydmljZS1NYW51YWxKd3QiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9hZmJlY2UwMy1hZWFhLTRmM2YtODVlNy1jZTA4ZGQyMGNlNTAvIiwiaWF0IjoxNDE4MzMwNjE0LCJuYmYiOjE0MTgzMzA2MTQsImV4cCI6MTQxODMzNDUxNCwidmVyIjoiMS4wIiwidGlkIjoiYWZiZWNlMDMtYWVhYS00ZjNmLTg1ZTctY2UwOGRkMjBjZTUwIiwiYW1yIjpbInB3ZCJdLCJvaWQiOiI1Mzk3OTdjMi00MDE5LTQ2NTktOWRiNS03MmM0Yzc3NzhhMzMiLCJ1cG4iOiJWaWN0b3JAVHVzaGFyVGVzdC5vbm1pY3Jvc29mdC5jb20iLCJ1bmlxdWVfbmFtZSI6IlZpY3RvckBUdXNoYXJUZXN0Lm9ubWljcm9zb2Z0LmNvbSIsInN1YiI6IkQyMm9aMW9VTzEzTUFiQXZrdnFyd2REVE80WXZJdjlzMV9GNWlVOVUwYnciLCJmYW1pbHlfbmFtZSI6Ikd1cHRhIiwiZ2l2ZW5fbmFtZSI6IlZpY3RvciIsImFwcGlkIjoiNjEzYjVhZjgtZjJjMy00MWI2LWExZGMtNDE2Yzk3ODAzMGI3IiwiYXBwaWRhY3IiOiIwIiwic2NwIjoidXNlcl9pbXBlcnNvbmF0aW9uIiwiYWNyIjoiMSJ9.N_Kw1EhoVGrHbE6hOcm7ERdZ7paBQiNdObvp2c6T6n5CE8p0fZqmUd-ya_EqwElcD6SiKSiP7gj0gpNUnOJcBl_H2X8GseaeeMxBrZdsnDL8qecc6_ygHruwlPltnLTdka67s1Ow4fDSHaqhVTEk6lzGmNEcbNAyb0CxQxU6o7Fh0yHRiWoLsT8yqYk8nKzsHXfZBNby4aRo3_hXaa4i0SZLYfDGGYPdttG4vT_u54QGGd4Wzbonv2gjDlllOVGOwoJS6kfl1h8mk0qxdiIaT_ChbDWgkWvTB7bTvBE-EgHgV0XmAo0WtJeSxgjsG3KhhEPsONmqrSjhIUV4IVnF2w";
             var response = await SendAsync(server, "http://example.com/oauth", newBearerToken);
-            response.Response.StatusCode.ShouldBe(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.Response.StatusCode);
         }
 
         [Fact]
@@ -45,7 +44,7 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
                 options.AutomaticAuthentication = true;
             });
             var transaction = await server.SendAsync("https://example.com/signIn");
-            transaction.Response.StatusCode.ShouldBe(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, transaction.Response.StatusCode);
         }
 
         [Fact]
@@ -56,7 +55,7 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
                 options.AutomaticAuthentication = true;
             });
             var transaction = await server.SendAsync("https://example.com/signOut");
-            transaction.Response.StatusCode.ShouldBe(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, transaction.Response.StatusCode);
         }
 
 
@@ -67,9 +66,9 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
             {
                 options.AutomaticAuthentication = true;
 
-                options.Events = new JwtBearerAuthenticationEvents()
+                options.Events = new JwtBearerEvents()
                 {
-                    OnMessageReceived = context =>
+                    OnReceivingToken = context =>
                     {
                         var claims = new[]
                         {
@@ -90,8 +89,8 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
             });
 
             var response = await SendAsync(server, "http://example.com/oauth", "someHeader someblob");
-            response.Response.StatusCode.ShouldBe(HttpStatusCode.OK);
-            response.ResponseText.ShouldBe("Bob le Magnifique");
+            Assert.Equal(HttpStatusCode.OK, response.Response.StatusCode);
+            Assert.Equal("Bob le Magnifique", response.ResponseText);
         }
 
         [Fact]
@@ -99,7 +98,7 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
         {
             var server = CreateServer(options => { });
             var response = await SendAsync(server, "http://example.com/oauth");
-            response.Response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+            Assert.Equal(HttpStatusCode.Unauthorized, response.Response.StatusCode);
         }
 
         [Fact]
@@ -107,7 +106,7 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
         {
             var server = CreateServer(options => { });
             var response = await SendAsync(server, "http://example.com/oauth","Token");
-            response.Response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+            Assert.Equal(HttpStatusCode.Unauthorized, response.Response.StatusCode);
         }
 
         [Fact]
@@ -117,9 +116,9 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
             {
                 options.AutomaticAuthentication = true;
 
-                options.Events = new JwtBearerAuthenticationEvents()
+                options.Events = new JwtBearerEvents()
                 {
-                    OnSecurityTokenReceived = context =>
+                    OnReceivedToken = context =>
                     {
                         var claims = new[]
                         {
@@ -140,8 +139,8 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
             });
 
             var response = await SendAsync(server, "http://example.com/oauth", "Bearer someblob");
-            response.Response.StatusCode.ShouldBe(HttpStatusCode.OK);
-            response.ResponseText.ShouldBe("Bob le Magnifique");
+            Assert.Equal(HttpStatusCode.OK, response.Response.StatusCode);
+            Assert.Equal("Bob le Magnifique", response.ResponseText);
         }
 
         [Fact]
@@ -151,16 +150,16 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
             {
                 options.AutomaticAuthentication = true;
 
-                options.Events = new JwtBearerAuthenticationEvents()
+                options.Events = new JwtBearerEvents()
                 {
-                    OnSecurityTokenValidated = context =>
+                    OnValidatedToken = context =>
                     {
                         // Retrieve the NameIdentifier claim from the identity
                         // returned by the custom security token validator.
                         var identity = (ClaimsIdentity)context.AuthenticationTicket.Principal.Identity;
                         var identifier = identity.FindFirst(ClaimTypes.NameIdentifier);
 
-                        identifier.Value.ShouldBe("Bob le Tout Puissant");
+                        Assert.Equal("Bob le Tout Puissant", identifier.Value);
 
                         // Remove the existing NameIdentifier claim and replace it
                         // with a new one containing a different value.
@@ -177,8 +176,8 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
             });
 
             var response = await SendAsync(server, "http://example.com/oauth", "Bearer someblob");
-            response.Response.StatusCode.ShouldBe(HttpStatusCode.OK);
-            response.ResponseText.ShouldBe("Bob le Magnifique");
+            Assert.Equal(HttpStatusCode.OK, response.Response.StatusCode);
+            Assert.Equal("Bob le Magnifique", response.ResponseText);
         }
 
         [Fact]
@@ -188,14 +187,14 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
             {
                 options.AutomaticAuthentication = true;
 
-                options.Events = new JwtBearerAuthenticationEvents()
+                options.Events = new JwtBearerEvents()
                 {
-                    OnMessageReceived = context =>
+                    OnReceivingToken = context =>
                     {
                         context.Token = "CustomToken";
                         return Task.FromResult<object>(null);
                     },
-                    OnSecurityTokenReceived = context =>
+                    OnReceivedToken = context =>
                     {
                         var claims = new[]
                         {
@@ -216,8 +215,8 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
             });
 
             var response = await SendAsync(server, "http://example.com/oauth", "Bearer Token");
-            response.Response.StatusCode.ShouldBe(HttpStatusCode.OK);
-            response.ResponseText.ShouldBe("Bob le Magnifique");
+            Assert.Equal(HttpStatusCode.OK, response.Response.StatusCode);
+            Assert.Equal("Bob le Magnifique", response.ResponseText);
         }
 
         [Fact]
@@ -225,9 +224,9 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
         {
             var server = CreateServer(options =>
             {
-                options.Events = new JwtBearerAuthenticationEvents()
+                options.Events = new JwtBearerEvents()
                 {
-                    OnSecurityTokenReceived = context =>
+                    OnReceivedToken = context =>
                     {
                         var claims = new[]
                         {
@@ -248,7 +247,7 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
             });
 
             var response = await SendAsync(server, "http://example.com/unauthorized", "Bearer Token");
-            response.Response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+            Assert.Equal(HttpStatusCode.Forbidden, response.Response.StatusCode);
         }
         
         [Fact]
@@ -256,9 +255,9 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
         {
             var server = CreateServer(options =>
             {
-                options.Events = new JwtBearerAuthenticationEvents()
+                options.Events = new JwtBearerEvents()
                 {
-                    OnSecurityTokenReceived = context =>
+                    OnReceivedToken = context =>
                     {
                         var claims = new[]
                         {
@@ -279,7 +278,7 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
             });
 
             var response = await SendAsync(server, "http://example.com/unauthorized");
-            response.Response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+            Assert.Equal(HttpStatusCode.Unauthorized, response.Response.StatusCode);
         }
 
         class BlobTokenValidator : ISecurityTokenValidator
@@ -324,7 +323,7 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
             }
         }
 
-        private static TestServer CreateServer(Action<JwtBearerAuthenticationOptions> configureOptions, Func<HttpContext, bool> handler = null)
+        private static TestServer CreateServer(Action<JwtBearerOptions> configureOptions, Func<HttpContext, bool> handler = null)
         {
             return TestServer.Create(app =>
             {
@@ -360,17 +359,17 @@ namespace Microsoft.AspNet.Authentication.JwtBearer
                     else if (context.Request.Path == new PathString("/unauthorized"))
                     {
                         // Simulate Authorization failure 
-                        var result = await context.Authentication.AuthenticateAsync(JwtBearerAuthenticationDefaults.AuthenticationScheme);
-                        await context.Authentication.ChallengeAsync(JwtBearerAuthenticationDefaults.AuthenticationScheme);
+                        var result = await context.Authentication.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
+                        await context.Authentication.ChallengeAsync(JwtBearerDefaults.AuthenticationScheme);
                     }
 
                     else if (context.Request.Path == new PathString("/signIn"))
                     {
-                        await Assert.ThrowsAsync<NotSupportedException>(() => context.Authentication.SignInAsync(JwtBearerAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal()));
+                        await Assert.ThrowsAsync<NotSupportedException>(() => context.Authentication.SignInAsync(JwtBearerDefaults.AuthenticationScheme, new ClaimsPrincipal()));
                     }
                     else if (context.Request.Path == new PathString("/signOut"))
                     {
-                        await Assert.ThrowsAsync<NotSupportedException>(() => context.Authentication.SignOutAsync(JwtBearerAuthenticationDefaults.AuthenticationScheme));
+                        await Assert.ThrowsAsync<NotSupportedException>(() => context.Authentication.SignOutAsync(JwtBearerDefaults.AuthenticationScheme));
                     }
                     else
                     {

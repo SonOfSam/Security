@@ -4,8 +4,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNet.Http;
-using Microsoft.Framework.Internal;
-using Microsoft.Framework.OptionsModel;
+using Microsoft.Extensions.OptionsModel;
 
 namespace Microsoft.AspNet.Authentication.Cookies
 {
@@ -39,9 +38,13 @@ namespace Microsoft.AspNet.Authentication.Cookies
         public string CookieName
         {
             get { return _cookieName; }
-            [param: NotNull]
             set
             {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
                 _cookieName = value;
             }
         }
@@ -146,7 +149,7 @@ namespace Microsoft.AspNet.Authentication.Cookies
         /// An optional container in which to store the identity across requests. When used, only a session identifier is sent
         /// to the client. This can be used to mitigate potential problems with very large identities.
         /// </summary>
-        public IAuthenticationSessionStore SessionStore { get; set; }
+        public ITicketStore SessionStore { get; set; }
 
         CookieAuthenticationOptions IOptions<CookieAuthenticationOptions>.Value
         {

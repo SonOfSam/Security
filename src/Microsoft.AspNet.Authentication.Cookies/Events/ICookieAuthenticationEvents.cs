@@ -23,30 +23,48 @@ namespace Microsoft.AspNet.Authentication.Cookies
         /// implementing this method the claims and extra information that go into the ticket may be altered.
         /// </summary>
         /// <param name="context">Contains information about the login session as well as the user <see cref="System.Security.Claims.ClaimsIdentity"/>.</param>
-        void ResponseSignIn(CookieResponseSignInContext context);
+        Task SigningIn(CookieSigningInContext context);
 
         /// <summary>
         /// Called when an endpoint has provided sign in information after it is converted into a cookie.
         /// </summary>
         /// <param name="context">Contains information about the login session as well as the user <see cref="System.Security.Claims.ClaimsIdentity"/>.</param>
-        void ResponseSignedIn(CookieResponseSignedInContext context);
+        Task SignedIn(CookieSignedInContext context);
 
         /// <summary>
-        /// Called when a Challenge, SignIn, or SignOut causes a redirect in the cookie middleware
+        /// Called when a SignOut causes a redirect in the cookie middleware.
         /// </summary>
         /// <param name="context">Contains information about the event</param>
-        void ApplyRedirect(CookieApplyRedirectContext context);
+        Task RedirectToLogout(CookieRedirectContext context);
+
+        /// <summary>
+        /// Called when a SignIn causes a redirect in the cookie middleware.
+        /// </summary>
+        /// <param name="context">Contains information about the event</param>
+        Task RedirectToLogin(CookieRedirectContext context);
+
+        /// <summary>
+        /// Called when redirecting back to the return url in the cookie middleware.
+        /// </summary>
+        /// <param name="context">Contains information about the event</param>
+        Task RedirectToReturnUrl(CookieRedirectContext context);
+
+        /// <summary>
+        /// Called when an access denied causes a redirect in the cookie middleware.
+        /// </summary>
+        /// <param name="context">Contains information about the event</param>
+        Task RedirectToAccessDenied(CookieRedirectContext context);
 
         /// <summary>
         /// Called during the sign-out flow to augment the cookie cleanup process.
         /// </summary>
         /// <param name="context">Contains information about the login session as well as information about the authentication cookie.</param>
-        void ResponseSignOut(CookieResponseSignOutContext context);
+        Task SigningOut(CookieSigningOutContext context);
 
         /// <summary>
         /// Called when an exception occurs during request or response processing.
         /// </summary>
         /// <param name="context">Contains information about the exception that occurred</param>
-        void Exception(CookieExceptionContext context);
+        Task Exception(CookieExceptionContext context);
     }
 }

@@ -9,9 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Http.Features.Authentication;
-using Microsoft.Framework.Internal;
-using Microsoft.Framework.Logging;
-using Microsoft.Framework.Primitives;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Authentication.Cookies
@@ -132,7 +131,7 @@ namespace Microsoft.AspNet.Authentication.Cookies
             {
                 var exceptionContext = new CookieExceptionContext(Context, Options,
                     CookieExceptionContext.ExceptionLocation.Authenticate, exception, ticket);
-                Options.Events.Exception(exceptionContext);
+                await Options.Events.Exception(exceptionContext);
                 if (exceptionContext.Rethrow)
                 {
                     throw;
@@ -204,13 +203,13 @@ namespace Microsoft.AspNet.Authentication.Cookies
                     cookieValue,
                     cookieOptions);
 
-                ApplyHeaders();
+                await ApplyHeaders(shouldRedirectToReturnUrl: false);
             }
             catch (Exception exception)
             {
                 var exceptionContext = new CookieExceptionContext(Context, Options,
                     CookieExceptionContext.ExceptionLocation.FinishResponse, exception, ticket);
-                Options.Events.Exception(exceptionContext);
+                await Options.Events.Exception(exceptionContext);
                 if (exceptionContext.Rethrow)
                 {
                     throw;
@@ -225,7 +224,7 @@ namespace Microsoft.AspNet.Authentication.Cookies
             {
                 var cookieOptions = BuildCookieOptions();
 
-                var signInContext = new CookieResponseSignInContext(
+                var signInContext = new CookieSigningInContext(
                     Context,
                     Options,
                     Options.AuthenticationScheme,
@@ -249,7 +248,7 @@ namespace Microsoft.AspNet.Authentication.Cookies
                     signInContext.Properties.ExpiresUtc = issuedUtc.Add(Options.ExpireTimeSpan);
                 }
 
-                Options.Events.ResponseSignIn(signInContext);
+                await Options.Events.SigningIn(signInContext);
 
                 if (signInContext.Properties.IsPersistent)
                 {
@@ -279,23 +278,24 @@ namespace Microsoft.AspNet.Authentication.Cookies
                     cookieValue,
                     signInContext.CookieOptions);
 
-                var signedInContext = new CookieResponseSignedInContext(
+                var signedInContext = new CookieSignedInContext(
                     Context,
                     Options,
                     Options.AuthenticationScheme,
                     signInContext.Principal,
                     signInContext.Properties);
 
-                Options.Events.ResponseSignedIn(signedInContext);
+                await Options.Events.SignedIn(signedInContext);
 
-                var shouldLoginRedirect = Options.LoginPath.HasValue && OriginalPath == Options.LoginPath;
-                ApplyHeaders(shouldLoginRedirect);
+                // Only redirect on the login path
+                var shouldRedirect = Options.LoginPath.HasValue && OriginalPath == Options.LoginPath;
+                await ApplyHeaders(shouldRedirect);
             }
             catch (Exception exception)
             {
                 var exceptionContext = new CookieExceptionContext(Context, Options,
                     CookieExceptionContext.ExceptionLocation.SignIn, exception, ticket);
-                Options.Events.Exception(exceptionContext);
+                await Options.Events.Exception(exceptionContext);
                 if (exceptionContext.Rethrow)
                 {
                     throw;
@@ -314,26 +314,27 @@ namespace Microsoft.AspNet.Authentication.Cookies
                     await Options.SessionStore.RemoveAsync(_sessionKey);
                 }
 
-                var context = new CookieResponseSignOutContext(
+                var context = new CookieSigningOutContext(
                     Context,
                     Options,
                     cookieOptions);
 
-                Options.Events.ResponseSignOut(context);
+                await Options.Events.SigningOut(context);
 
                 Options.CookieManager.DeleteCookie(
                     Context,
                     Options.CookieName,
                     context.CookieOptions);
 
-                var shouldLogoutRedirect = Options.LogoutPath.HasValue && OriginalPath == Options.LogoutPath;
-                ApplyHeaders(shouldLogoutRedirect);
+                // Only redirect on the logout path
+                var shouldRedirect = Options.LogoutPath.HasValue && OriginalPath == Options.LogoutPath;
+                await ApplyHeaders(shouldRedirect);
             }
             catch (Exception exception)
             {
                 var exceptionContext = new CookieExceptionContext(Context, Options,
                     CookieExceptionContext.ExceptionLocation.SignOut, exception, ticket);
-                Options.Events.Exception(exceptionContext);
+                await Options.Events.Exception(exceptionContext);
                 if (exceptionContext.Rethrow)
                 {
                     throw;
@@ -341,12 +342,11 @@ namespace Microsoft.AspNet.Authentication.Cookies
             }
         }
 
-        private void ApplyHeaders(bool shouldRedirectToReturnUrl = false)
+        private async Task ApplyHeaders(bool shouldRedirectToReturnUrl)
         {
             Response.Headers[HeaderNames.CacheControl] = HeaderValueNoCache;
             Response.Headers[HeaderNames.Pragma] = HeaderValueNoCache;
             Response.Headers[HeaderNames.Expires] = HeaderValueMinusOne;
-
             if (shouldRedirectToReturnUrl && Response.StatusCode == 200)
             {
                 var query = Request.Query;
@@ -354,10 +354,11 @@ namespace Microsoft.AspNet.Authentication.Cookies
                 if (!StringValues.IsNullOrEmpty(redirectUri)
                     && IsHostRelative(redirectUri))
                 {
-                    var redirectContext = new CookieApplyRedirectContext(Context, Options, redirectUri);
-                    Options.Events.ApplyRedirect(redirectContext);
+                    var redirectContext = new CookieRedirectContext(Context, Options, redirectUri);
+                    await Options.Events.RedirectToReturnUrl(redirectContext);
                 }
             }
+
         }
 
         private static bool IsHostRelative(string path)
@@ -373,7 +374,7 @@ namespace Microsoft.AspNet.Authentication.Cookies
             return path[0] == '/' && path[1] != '/' && path[1] != '\\';
         }
 
-        protected override Task<bool> HandleForbiddenAsync(ChallengeContext context)
+        protected async override Task<bool> HandleForbiddenAsync(ChallengeContext context)
         {
             try
             {
@@ -384,24 +385,29 @@ namespace Microsoft.AspNet.Authentication.Cookies
                     OriginalPathBase +
                     Options.AccessDeniedPath;
 
-                var redirectContext = new CookieApplyRedirectContext(Context, Options, accessDeniedUri);
-                Options.Events.ApplyRedirect(redirectContext);
+                var redirectContext = new CookieRedirectContext(Context, Options, accessDeniedUri);
+                await Options.Events.RedirectToAccessDenied(redirectContext);
             }
             catch (Exception exception)
             {
                 var exceptionContext = new CookieExceptionContext(Context, Options,
                     CookieExceptionContext.ExceptionLocation.Forbidden, exception, ticket: null);
-                Options.Events.Exception(exceptionContext);
+                await Options.Events.Exception(exceptionContext);
                 if (exceptionContext.Rethrow)
                 {
                     throw;
                 }
             }
-            return Task.FromResult(true);
+            return true;
         }
 
-        protected override Task<bool> HandleUnauthorizedAsync([NotNull] ChallengeContext context)
+        protected override async Task<bool> HandleUnauthorizedAsync(ChallengeContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var redirectUri = new AuthenticationProperties(context.Properties).RedirectUri;
             try
             {
@@ -411,20 +417,20 @@ namespace Microsoft.AspNet.Authentication.Cookies
                 }
 
                 var loginUri = Options.LoginPath + QueryString.Create(Options.ReturnUrlParameter, redirectUri);
-                var redirectContext = new CookieApplyRedirectContext(Context, Options, BuildRedirectUri(loginUri));
-                Options.Events.ApplyRedirect(redirectContext);
+                var redirectContext = new CookieRedirectContext(Context, Options, BuildRedirectUri(loginUri));
+                await Options.Events.RedirectToLogin(redirectContext);
             }
             catch (Exception exception)
             {
                 var exceptionContext = new CookieExceptionContext(Context, Options,
                     CookieExceptionContext.ExceptionLocation.Unauthorized, exception, ticket: null);
-                Options.Events.Exception(exceptionContext);
+                await Options.Events.Exception(exceptionContext);
                 if (exceptionContext.Rethrow)
                 {
                     throw;
                 }
             }
-            return Task.FromResult(true);
+            return true;
         }
     }
 }

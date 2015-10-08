@@ -1,11 +1,10 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
-using Microsoft.Framework.OptionsModel;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Authentication
 {
@@ -14,15 +13,20 @@ namespace Microsoft.AspNet.Authentication
         private readonly RequestDelegate _next;
 
         public ClaimsTransformationMiddleware(
-            [NotNull] RequestDelegate next,
-            [NotNull] IOptions<ClaimsTransformationOptions> options,
-            ConfigureOptions<ClaimsTransformationOptions> configureOptions)
+            RequestDelegate next,
+            ClaimsTransformationOptions options)
         {
-            Options = options.Value;
-            if (configureOptions != null)
+            if (next == null)
             {
-                configureOptions.Configure(Options);
+                throw new ArgumentNullException(nameof(next));
             }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            Options = options;
             _next = next;
         }
 
@@ -30,9 +34,10 @@ namespace Microsoft.AspNet.Authentication
 
         public async Task Invoke(HttpContext context)
         {
-            var handler = new ClaimsTransformationAuthenticationHandler(Options.Transformer);
+            var handler = new ClaimsTransformationHandler(Options.Transformer);
             handler.RegisterAuthenticationHandler(context.GetAuthentication());
-            try {
+            try
+            {
                 if (Options.Transformer != null)
                 {
                     context.User = await Options.Transformer.TransformAsync(context.User);

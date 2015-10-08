@@ -5,9 +5,9 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Features.Authentication;
-using Microsoft.Framework.Internal;
-using Microsoft.Framework.Logging;
-using Microsoft.Framework.WebEncoders;
+using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.WebEncoders;
 
 namespace Microsoft.AspNet.Authentication
 {
@@ -63,8 +63,28 @@ namespace Microsoft.AspNet.Authentication
         /// <param name="context">The utility object to observe the current request and response</param>
         /// <param name="logger">The logging factory used to create loggers</param>
         /// <returns>async completion</returns>
-        public async Task InitializeAsync([NotNull] TOptions options, [NotNull] HttpContext context, [NotNull] ILogger logger, [NotNull] IUrlEncoder encoder)
+        public async Task InitializeAsync(TOptions options, HttpContext context, ILogger logger, IUrlEncoder encoder)
         {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (encoder == null)
+            {
+                throw new ArgumentNullException(nameof(encoder));
+            }
+
             Options = options;
             Context = context;
             OriginalPathBase = Request.PathBase;

@@ -1,10 +1,10 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.AspNet.Http.Authentication;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Authentication.Twitter
 {
@@ -56,13 +56,23 @@ namespace Microsoft.AspNet.Authentication.Twitter
         /// </summary>
         /// <param name="writer">The writer to use in writing the token</param>
         /// <param name="token">The token to write</param>
-        public static void Write([NotNull] BinaryWriter writer, [NotNull] RequestToken token)
+        public static void Write(BinaryWriter writer, RequestToken token)
         {
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (token == null)
+            {
+                throw new ArgumentNullException(nameof(token));
+            }
+
             writer.Write(FormatVersion);
             writer.Write(token.Token);
             writer.Write(token.TokenSecret);
             writer.Write(token.CallbackConfirmed);
-            PropertiesSerializer.Write(writer, token.Properties);
+            PropertiesSerializer.Default.Write(writer, token.Properties);
         }
 
         /// <summary>
@@ -70,8 +80,13 @@ namespace Microsoft.AspNet.Authentication.Twitter
         /// </summary>
         /// <param name="reader">The reader to use in reading the token bytes</param>
         /// <returns>The token</returns>
-        public static RequestToken Read([NotNull] BinaryReader reader)
+        public static RequestToken Read(BinaryReader reader)
         {
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
             if (reader.ReadInt32() != FormatVersion)
             {
                 return null;
@@ -80,7 +95,7 @@ namespace Microsoft.AspNet.Authentication.Twitter
             string token = reader.ReadString();
             string tokenSecret = reader.ReadString();
             bool callbackConfirmed = reader.ReadBoolean();
-            AuthenticationProperties properties = PropertiesSerializer.Read(reader);
+            AuthenticationProperties properties = PropertiesSerializer.Default.Read(reader);
             if (properties == null)
             {
                 return null;

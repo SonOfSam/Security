@@ -3,20 +3,43 @@
 
 using System;
 using Microsoft.AspNet.Authentication.Twitter;
-using Microsoft.Framework.Internal;
-using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Builder
 {
     /// <summary>
-    /// Extension methods for using <see cref="TwitterAuthenticationMiddleware"/>
+    /// Extension methods for using <see cref="TwitterMiddleware"/>
     /// </summary>
     public static class TwitterAppBuilderExtensions
     {
-        public static IApplicationBuilder UseTwitterAuthentication([NotNull] this IApplicationBuilder app, Action<TwitterAuthenticationOptions> configureOptions = null)
+        public static IApplicationBuilder UseTwitterAuthentication(this IApplicationBuilder app, Action<TwitterOptions> configureOptions = null)
         {
-            return app.UseMiddleware<TwitterAuthenticationMiddleware>(
-                 new ConfigureOptions<TwitterAuthenticationOptions>(configureOptions ?? (o => { })));
+            if (app == null)
+            {
+                throw new ArgumentNullException(nameof(app));
+            }
+
+            var options = new TwitterOptions();
+            if (configureOptions != null)
+            {
+                configureOptions(options);
+            }
+            return app.UseTwitterAuthentication(options);
         }
+
+        public static IApplicationBuilder UseTwitterAuthentication(this IApplicationBuilder app, TwitterOptions options)
+        {
+            if (app == null)
+            {
+                throw new ArgumentNullException(nameof(app));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return app.UseMiddleware<TwitterMiddleware>(options);
+        }
+
     }
 }
