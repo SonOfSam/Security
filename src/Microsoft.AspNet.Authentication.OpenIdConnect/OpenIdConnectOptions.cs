@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http;
-using System.Security.Claims;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.Extensions.WebEncoders;
@@ -19,7 +17,7 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
     /// <summary>
     /// Configuration options for <see cref="OpenIdConnectOptions"/>
     /// </summary>
-    public class OpenIdConnectOptions : AuthenticationOptions
+    public class OpenIdConnectOptions : RemoteAuthenticationOptions
     {
         /// <summary>
         /// Initializes a new <see cref="OpenIdConnectOptions"/>
@@ -50,6 +48,8 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         {
             AuthenticationScheme = authenticationScheme;
             DisplayName = OpenIdConnectDefaults.Caption;
+            CallbackPath = new PathString("/signin-oidc");
+            Events = new OpenIdConnectEvents();
         }
 
         /// <summary>
@@ -64,36 +64,6 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         /// Gets or sets the Authority to use when making OpenIdConnect calls.
         /// </summary>
         public string Authority { get; set; }
-
-        /// <summary>
-        /// The HttpMessageHandler used to retrieve metadata.
-        /// This cannot be set at the same time as BackchannelCertificateValidator unless the value
-        /// is a WebRequestHandler.
-        /// </summary>
-        public HttpMessageHandler BackchannelHttpHandler { get; set; }
-
-        /// <summary>
-        /// Gets or sets the timeout when using the backchannel to make an http call.
-        /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA2208:InstantiateArgumentExceptionsCorrectly", Justification = "By design we use the property name in the exception")]
-        public TimeSpan BackchannelTimeout { get; set; } = TimeSpan.FromSeconds(60);
-
-        /// <summary>
-        /// Get or sets the text that the user can display on a sign in user interface.
-        /// </summary>
-        public string DisplayName
-        {
-            get { return Description.DisplayName; }
-            set { Description.DisplayName = value; }
-        }
-
-        /// <summary>
-        /// An optional constrained path on which to process the authentication callback.
-        /// If not provided and RedirectUri is available, this value will be generated from RedirectUri.
-        /// </summary>
-        /// <remarks>If you set this value, then the <see cref="OpenIdConnectHandler"/> will only listen for posts at this address. 
-        /// If the IdentityProvider does not post to this address, you may end up in a 401 -> IdentityProvider -> Client -> 401 -> ...</remarks>
-        public PathString CallbackPath { get; set; }
 
         /// <summary>
         /// Gets or sets the 'client_id'.
@@ -118,12 +88,6 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         public IConfigurationManager<OpenIdConnectConfiguration> ConfigurationManager { get; set; }
 
         /// <summary>
-        /// Gets or sets a value controlling if the 'CurrentUri' should be used as the 'local redirect' post authentication
-        /// if AuthenticationProperties.RedirectUri is null or empty.
-        /// </summary>
-        public bool DefaultToCurrentUriOnRedirect { get; set; }
-
-        /// <summary>
         /// Boolean to set whether the middleware should go to user info endpoint to retrieve additional claims or not after creating an identity from id_token received from token endpoint.
         /// </summary>
         public bool GetClaimsFromUserInfoEndpoint { get; set; }
@@ -136,7 +100,11 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         /// <summary>
         /// Gets or sets the <see cref="IOpenIdConnectEvents"/> to notify when processing OpenIdConnect messages.
         /// </summary>
-        public IOpenIdConnectEvents Events { get; set; } = new OpenIdConnectEvents();
+        public new IOpenIdConnectEvents Events
+        {
+            get { return (IOpenIdConnectEvents)base.Events; }
+            set { base.Events = value; }
+        }
 
         /// <summary>
         /// Gets or sets the <see cref="OpenIdConnectProtocolValidator"/> that is used to ensure that the 'id_token' received
@@ -195,11 +163,6 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         public IList<string> Scope { get; } = new List<string> { "openid", "profile" };
 
         /// <summary>
-        /// Gets or sets the SignInScheme which will be used to set the <see cref="ClaimsIdentity.AuthenticationType"/>.
-        /// </summary>
-        public string SignInScheme { get; set; }
-
-        /// <summary>
         /// Gets or sets the type used to secure data handled by the middleware.
         /// </summary>
         public ISecureDataFormat<AuthenticationProperties> StateDataFormat { get; set; }
@@ -233,10 +196,5 @@ namespace Microsoft.AspNet.Authentication.OpenIdConnect
         /// You can set this property to <c>false</c> to reduce the size of the final authentication cookie.
         /// </summary>
         public bool SaveTokensAsClaims { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets the <see cref="IHtmlEncoder"/> used to sanitize HTML outputs.
-        /// </summary>
-        public IHtmlEncoder HtmlEncoder { get; set; }
     }
 }

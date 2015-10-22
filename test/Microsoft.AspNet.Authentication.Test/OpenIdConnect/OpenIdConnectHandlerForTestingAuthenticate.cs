@@ -5,8 +5,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Authentication.OpenIdConnect;
-using Microsoft.AspNet.Http.Authentication;
-using Microsoft.AspNet.Http.Features.Authentication;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json.Linq;
 
@@ -17,21 +15,15 @@ namespace Microsoft.AspNet.Authentication.Tests.OpenIdConnect
     /// </summary>
     public class OpenIdConnectHandlerForTestingAuthenticate : OpenIdConnectHandler
     {
-        public OpenIdConnectHandlerForTestingAuthenticate()
-                    : base(null)
+        public OpenIdConnectHandlerForTestingAuthenticate() : base(null, null)
         {
         }
 
-        protected override async Task<bool> HandleUnauthorizedAsync(ChallengeContext context)
-        {
-            return await base.HandleUnauthorizedAsync(context);
-        }
-
-        protected override Task<OpenIdConnectTokenEndpointResponse> RedeemAuthorizationCodeAsync(string authorizationCode, string redirectUri)
+        protected override Task<OpenIdConnectMessage> RedeemAuthorizationCodeAsync(string authorizationCode, string redirectUri)
         {
             var jsonResponse = new JObject();
             jsonResponse.Add(OpenIdConnectParameterNames.IdToken, "test token");
-            return Task.FromResult(new OpenIdConnectTokenEndpointResponse(jsonResponse));
+            return Task.FromResult(new OpenIdConnectMessage(jsonResponse));
         }
 
         protected override Task<AuthenticationTicket> GetUserInformationAsync(OpenIdConnectMessage message, JwtSecurityToken jwt, AuthenticationTicket ticket)

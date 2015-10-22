@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Http;
 using Microsoft.Extensions.OptionsModel;
 
@@ -74,6 +76,11 @@ namespace Microsoft.AspNet.Authentication.Cookies
         public CookieSecureOption CookieSecure { get; set; }
 
         /// <summary>
+        /// If set this will be used by the CookieAuthenticationMiddleware for data protection.
+        /// </summary>
+        public IDataProtectionProvider DataProtectionProvider { get; set; }
+
+        /// <summary>
         /// Controls how much time the cookie will remain valid from the point it is created. The expiration
         /// information is in the protected cookie ticket. Because of that an expired cookie will be ignored 
         /// even if it is passed to the server after the browser should have purged it 
@@ -133,9 +140,9 @@ namespace Microsoft.AspNet.Authentication.Cookies
         public ISecureDataFormat<AuthenticationTicket> TicketDataFormat { get; set; }
 
         /// <summary>
-        /// The SystemClock provides access to the system's current time coordinates. If it is not provided a default instance is
-        /// used which calls DateTimeOffset.UtcNow. This is typically not replaced except for unit testing. 
+        /// For testing purposes only.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public ISystemClock SystemClock { get; set; }
 
         /// <summary>

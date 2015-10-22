@@ -6,28 +6,13 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNet.Http.Authentication;
+using Microsoft.AspNet.Testing.xunit;
 using Xunit;
 
 namespace Microsoft.AspNet.Authentication
 {
     public class TicketSerializerTests
     {
-        [Fact]
-        public void NullPrincipalThrows()
-        {
-            var serializer = new TicketSerializer();
-            var properties = new AuthenticationProperties();
-            properties.RedirectUri = "bye";
-            var ticket = new AuthenticationTicket(properties, "Hello");
-
-            using (var stream = new MemoryStream())
-            using (var writer = new BinaryWriter(stream))
-            using (var reader = new BinaryReader(stream))
-            {
-                Assert.Throws<ArgumentNullException>(() => serializer.Write(writer, ticket));
-            }
-        }
-
         [Fact]
         public void CanRoundTripEmptyPrincipal()
         {
@@ -97,7 +82,10 @@ namespace Microsoft.AspNet.Authentication
             }
         }
 
-        [Fact]
+        [ConditionalFact]
+        [FrameworkSkipCondition(
+            RuntimeFrameworks.Mono,
+            SkipReason = "Test fails with Mono 4.0.4. Build rarely reaches testing with Mono 4.2.1")]
         public void CanRoundTripClaimProperties()
         {
             var serializer = new TicketSerializer();

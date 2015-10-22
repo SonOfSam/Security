@@ -8,6 +8,7 @@ using System.Security.Claims;
 
 namespace Microsoft.AspNet.Authentication
 {
+    // This MUST be kept in sync with Microsoft.Owin.Security.Cookies.AspNetTicketSerializer
     public class TicketSerializer : IDataSerializer<AuthenticationTicket>
     {
         private const string DefaultStringPlaceholder = "\0";
@@ -53,13 +54,8 @@ namespace Microsoft.AspNet.Authentication
             writer.Write(FormatVersion);
             writer.Write(ticket.AuthenticationScheme);
 
-            var principal = ticket.Principal;
-            if (principal == null)
-            {
-                throw new ArgumentNullException("model.Principal");
-            }
-
             // Write the number of identities contained in the principal.
+            var principal = ticket.Principal;
             writer.Write(principal.Identities.Count());
 
             foreach (var identity in principal.Identities)

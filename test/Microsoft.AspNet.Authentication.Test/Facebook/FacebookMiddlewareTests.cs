@@ -18,6 +18,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.WebEncoders;
 using Newtonsoft.Json;
 using Xunit;
+using System.Diagnostics;
+using Microsoft.AspNet.Authentication.Cookies;
 
 namespace Microsoft.AspNet.Authentication.Facebook
 {
@@ -45,7 +47,7 @@ namespace Microsoft.AspNet.Authentication.Facebook
                     app.UseCookieAuthentication(options =>
                     {
                         options.AuthenticationScheme = "External";
-                        options.AutomaticAuthentication = true;
+                        options.AutomaticAuthenticate = true;
                     });
                 },
                 services =>
@@ -158,11 +160,12 @@ namespace Microsoft.AspNet.Authentication.Facebook
         public async Task CustomUserInfoEndpointHasValidGraphQuery()
         {
             var customUserInfoEndpoint = "https://graph.facebook.com/me?fields=email,timezone,picture";
-            string finalUserInfoEndpoint = string.Empty;
+            var finalUserInfoEndpoint = string.Empty;
             var stateFormat = new PropertiesDataFormat(new EphemeralDataProtectionProvider().CreateProtector("FacebookTest"));
             var server = CreateServer(
                 app =>
                 {
+                    app.UseCookieAuthentication();
                     app.UseFacebookAuthentication(options =>
                     {
                         options.AppId = "Test App Id";
@@ -173,7 +176,7 @@ namespace Microsoft.AspNet.Authentication.Facebook
                         {
                             Sender = req =>
                             {
-                                if (req.RequestUri.GetLeftPart(UriPartial.Path) == FacebookDefaults.TokenEndpoint)
+                                if (req.RequestUri.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.UriEscaped) == FacebookDefaults.TokenEndpoint)
                                 {
                                     var res = new HttpResponseMessage(HttpStatusCode.OK);
                                     var tokenResponse = new Dictionary<string, string>
@@ -183,8 +186,8 @@ namespace Microsoft.AspNet.Authentication.Facebook
                                     res.Content = new FormUrlEncodedContent(tokenResponse);
                                     return res;
                                 }
-                                if (req.RequestUri.GetLeftPart(UriPartial.Path) ==
-                                    new Uri(customUserInfoEndpoint).GetLeftPart(UriPartial.Path))
+                                if (req.RequestUri.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.UriEscaped) ==
+                                    new Uri(customUserInfoEndpoint).GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.UriEscaped))
                                 {
                                     finalUserInfoEndpoint = req.RequestUri.ToString();
                                     var res = new HttpResponseMessage(HttpStatusCode.OK);
@@ -200,11 +203,10 @@ namespace Microsoft.AspNet.Authentication.Facebook
                             }
                         };
                     });
-                    app.UseCookieAuthentication();
                 },
                 services =>
                 {
-                    services.AddAuthentication();
+                    services.AddAuthentication(options => options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme);
                 }, handler: null);
 
             var properties = new AuthenticationProperties();

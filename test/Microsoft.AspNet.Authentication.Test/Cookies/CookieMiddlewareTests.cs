@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -10,7 +9,6 @@ using System.Security.Claims;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.DataProtection;
@@ -43,7 +41,7 @@ namespace Microsoft.AspNet.Authentication.Cookies
             var server = CreateServer(options =>
             {
                 options.LoginPath = new PathString("/login");
-                options.AutomaticAuthentication = auto;
+                options.AutomaticChallenge = auto;
             });
 
             var transaction = await SendAsync(server, "http://example.com/protected");
@@ -60,7 +58,7 @@ namespace Microsoft.AspNet.Authentication.Cookies
         [Fact]
         public async Task ProtectedCustomRequestShouldRedirectToCustomRedirectUri()
         {
-            var server = CreateServer(options => options.AutomaticAuthentication = true);
+            var server = CreateServer(options => options.AutomaticChallenge = true);
 
             var transaction = await SendAsync(server, "http://example.com/protected/CustomRedirect");
 
@@ -573,7 +571,7 @@ namespace Microsoft.AspNet.Authentication.Cookies
             var clock = new TestClock();
             var server = CreateServer(options =>
             {
-                options.AutomaticAuthentication = automatic;
+                options.AutomaticAuthenticate = automatic;
                 options.SystemClock = clock;
             }, 
             SignInAsAlice);
@@ -596,7 +594,7 @@ namespace Microsoft.AspNet.Authentication.Cookies
             var clock = new TestClock();
             var server = CreateServer(options =>
             {
-                options.AutomaticAuthentication = automatic;
+                options.AutomaticAuthenticate = automatic;
                 options.SystemClock = clock;
             },
             SignInAsAlice);
@@ -617,7 +615,7 @@ namespace Microsoft.AspNet.Authentication.Cookies
             var clock = new TestClock();
             var server = CreateServer(options =>
             {
-                options.AutomaticAuthentication = automatic;
+                options.AutomaticAuthenticate = automatic;
                 options.SystemClock = clock;
             },
             SignInAsAlice);
@@ -1002,10 +1000,7 @@ namespace Microsoft.AspNet.Authentication.Cookies
                     }
                 });
             },
-            services =>
-            {
-                services.AddAuthentication();
-            });
+            services => services.AddAuthentication());
             server.BaseAddress = baseAddress;
             return server;
         }
@@ -1023,14 +1018,8 @@ namespace Microsoft.AspNet.Authentication.Cookies
             {
                 xml.Add(result.Properties.Select(extra => new XElement("extra", new XAttribute("type", extra.Key), new XAttribute("value", extra.Value))));
             }
-            using (var memory = new MemoryStream())
-            {
-                using (var writer = new XmlTextWriter(memory, Encoding.UTF8))
-                {
-                    xml.WriteTo(writer);
-                }
-                res.Body.Write(memory.ToArray(), 0, memory.ToArray().Length);
-            }
+            var xmlBytes = Encoding.UTF8.GetBytes(xml.ToString());
+            res.Body.Write(xmlBytes, 0, xmlBytes.Length);
         }
 
         private static async Task<Transaction> SendAsync(TestServer server, string uri, string cookieHeader = null)

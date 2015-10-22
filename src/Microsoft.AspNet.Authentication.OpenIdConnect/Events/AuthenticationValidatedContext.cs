@@ -6,15 +6,13 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Microsoft.AspNet.Authentication.OpenIdConnect
 {
-    public class AuthenticationValidatedContext : BaseControlContext<OpenIdConnectOptions>
+    public class AuthenticationValidatedContext : BaseOpenIdConnectContext
     {
         public AuthenticationValidatedContext(HttpContext context, OpenIdConnectOptions options)
             : base(context, options)
         {
         }
 
-        public OpenIdConnectMessage ProtocolMessage { get; set; }
-
-        public OpenIdConnectTokenEndpointResponse TokenEndpointResponse { get; set; }
+        public OpenIdConnectMessage TokenEndpointResponse { get; set; }
     }
 }
